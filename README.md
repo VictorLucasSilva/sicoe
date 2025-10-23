@@ -12,20 +12,13 @@ git push -u origin main
 
 ----------------------------------
 
-# subir db + backend
 cd ~/app-sicoe/sicoe-local
+
+# (opcional) remove a linha "version:" do compose se ainda existir
+# sed -i '/^version:/d' docker-compose.yml
+
 docker compose down -v
-docker compose --env-file .env up -d --build db backend
-
-# gerar e aplicar migrations NO HOST (usa porta 5432 publicada)
-cd ~/app-sicoe/sicoe-backend
-DB_HOST=localhost DB_PORT=5432 DB_USER=sicoe DB_PASS=sicoe DB_NAME=sicoe npm run migration:generate
-DB_HOST=localhost DB_PORT=5432 DB_USER=sicoe DB_PASS=sicoe DB_NAME=sicoe npm run migration:run
-
-# subir frontend
-cd ~/app-sicoe/sicoe-local
-docker compose --env-file .env up -d --build frontend
-
+docker compose --env-file .env up -d --build db backend frontend
 # smoke tests
 curl -s http://localhost:3001/health        # -> {"status":"ok"}
 curl -s http://localhost:3000/api/health    # -> {"status":"ok"}

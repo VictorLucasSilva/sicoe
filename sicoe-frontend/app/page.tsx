@@ -1,17 +1,26 @@
+// app/page.tsx
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+type Health = { status: string };
+
+async function getHealth(base?: string): Promise<{ status: string; raw: unknown }> {
+  // Use o APP_ORIGIN quando estiver em container; em dev local também funciona.
+  const origin = base || process.env.APP_ORIGIN || 'http://localhost:3000';
+  const res = await fetch(`${origin}/api/health`, { cache: 'no-store' });
+  const data = (await res.json()) as Health;
+  return { status: data?.status ?? 'offline', raw: data };
+}
 
 export default async function Home() {
-  const res = await fetch('http://localhost:3000/api/health', { cache: 'no-store' });
-  const ok = res.ok;
-  let body: unknown = null;
-  try { body = await res.json(); } catch {}
+  const { status, raw } = await getHealth();
 
   return (
     <main style={{ padding: 24, fontFamily: 'system-ui, Arial, sans-serif' }}>
-      <h1 style={{ marginBottom: 12 }}>SICOE — Frontend ↔ Backend</h1>
-      <p><strong>Status do backend:</strong> {ok ? 'ok' : 'offline'}</p>
+      <h1>SICOE — Frontend ↔ Backend</h1>
+      <p><strong>Status do backend:</strong> {status}</p>
       <pre style={{ background: '#f6f6f6', padding: 12, borderRadius: 8 }}>
-{JSON.stringify(body, null, 2)}
+        {JSON.stringify(raw, null, 2)}
       </pre>
       <hr style={{ margin: '16px 0' }} />
       <p><strong>Base URL (server):</strong> {process.env.BACKEND_INTERNAL_URL || 'http://backend:3001'}</p>

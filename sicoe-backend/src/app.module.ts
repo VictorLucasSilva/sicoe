@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HealthModule } from './health/health.module';
-import { User } from './users/user.entity';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -11,18 +11,17 @@ import { User } from './users/user.entity';
       inject: [ConfigService],
       useFactory: (cfg: ConfigService) => ({
         type: 'postgres',
-        host: cfg.get('DB_HOST', 'localhost'),
-        port: Number(cfg.get('DB_PORT', 5432)),
+        host: cfg.get('DB_HOST', 'db'),
+        port: parseInt(cfg.get('DB_PORT', '5432'), 10),
         username: cfg.get('DB_USER', 'sicoe'),
         password: cfg.get('DB_PASS', 'sicoe'),
         database: cfg.get('DB_NAME', 'sicoe'),
-        entities: [User],
-        synchronize: false,
-        migrationsRun: false
+        autoLoadEntities: true, // carrega as entidades dos módulos
+        synchronize: false,     // usamos migrations
       }),
     }),
-    TypeOrmModule.forFeature([User]),
     HealthModule,
+    DocumentsModule,           // <- importante
   ],
 })
 export class AppModule {}
